@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HLS Live Player</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 24px; }
+        video { width: 100%; max-width: 960px; background: #111; }
+        #status { margin-top: 12px; color: #333; }
+    </style>
+</head>
+<body>
+    <h1>Live HLS Player</h1>
+    <video id="video" controls autoplay muted></video>
+    <p id="status">Инициализация...</p>
+
+    <script>
+        const video = document.getElementById("video");
+        const status = document.getElementById("status");
+        const source = "/output.m3u8";
+
+        if (window.Hls && window.Hls.isSupported()) {
+            const hls = new window.Hls({
+                // В live-плейлисте начинаем воспроизведение с начала доступного окна,
+                // иначе hls.js по умолчанию прыгает к "live edge" (последние секунды).
+                autoStartLoad: false,
+                startPosition: 0,
+                maxBufferLength: 30
+            });
+            hls.loadSource(source);
+            hls.attachMedia(video);
+            hls.on(window.Hls.Events.MANIFEST_PARSED, () => {
+                hls.startLoad(0);
+                video.currentTime = 0;
+                status.innerText = "Плейлист загружен, поток воспроизводится.";
+                video.play().catch(() => {});
+            });
+            hls.on(window.Hls.Events.ERROR, (_, data) => {
+                status.innerText = "Ошибка HLS: " + data.details;
+            });
+        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+            video.src = source;
+            status.innerText = "Используется встроенный HLS плеер браузера.";
+        } else {
+            status.innerText = "Ваш браузер не поддерживает HLS.";
+        }
+    </script>
+</body>
+</html>

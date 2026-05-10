@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>HLS Видео Трансляция</title>
+    <!-- Подключаем HLS.js для клиентской логики -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        :root {
+            --bg-1: #0f172a;
+            --bg-2: #1e1b4b;
+            --card: rgba(255, 255, 255, 0.1);
+            --card-border: rgba(255, 255, 255, 0.2);
+            --text: #f8fafc;
+            --muted: #cbd5e1;
+            --accent: #22d3ee;
+            --accent-2: #a78bfa;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: "Inter", "Segoe UI", Arial, sans-serif;
+            margin: 0;
+            padding: 32px;
+            color: var(--text);
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.15), transparent 40%),
+                radial-gradient(circle at 80% 0%, rgba(167, 139, 250, 0.18), transparent 35%),
+                linear-gradient(135deg, var(--bg-1), var(--bg-2));
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+            background-size: 32px 32px;
+            mask-image: radial-gradient(circle at center, black 35%, transparent 100%);
+        }
+
+        h1, h2, h3 {
+            margin-top: 0;
+            text-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .video-container {
+            margin-bottom: 18px;
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid var(--card-border);
+            background: var(--card);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+        }
+
+        input, button {
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 10px 12px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input {
+            background: rgba(15, 23, 42, 0.65);
+            color: var(--text);
+            min-width: 180px;
+        }
+
+        input::placeholder { color: var(--muted); }
+
+        button {
+            cursor: pointer;
+            color: white;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            border: none;
+            font-weight: 600;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            box-shadow: 0 8px 18px rgba(34, 211, 238, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 22px rgba(167, 139, 250, 0.35);
+        }
+
+        p, li { color: var(--muted); }
+
+        video {
+            width: 100%;
+            max-width: 720px;
+            border-radius: 12px;
+            background: #000;
+            margin-top: 10px;
+            border: 1px solid rgba(255,255,255,0.25);
+        }
+    </style>
+</head>
+<body>
+    <h1>Загрузка и трансляция видео (HLS)</h1>
+    <div class="video-container">
+        <h3>Панель администратора</h3>
+        <input type="text" id="adminUsername" placeholder="Логин" value="admin">
+        <input type="password" id="adminPassword" placeholder="Пароль">
+        <button id="adminLoginBtn" type="button">Войти</button>
+        <button id="adminLogoutBtn" type="button">Выйти</button>
+        <p id="adminStatus">Режим администратора выключен</p>
+    </div>
+
+    <form id="uploadForm">
+        <input type="file" id="videoFile" accept="video/*" required>
+        <button type="submit">Загрузить на сервер</button>
+    </form>
+    <p id="statusMsg"></p>
+
+    <h2>Доступные потоки:</h2>
+    <div id="videosContainer">
+        {% for video in videos %}
+            <div class="video-container">
+                <p><strong>{{ video.filename }}</strong> - Статус: {{ video.status }}</p>
+            </div>
+        {% else %}
+            <p>Нет загруженных видео.</p>
+        {% endfor %}
+    </div>
+
+    <h2>Журнал действий (последние 50):</h2>
+    <ul id="logsContainer"></ul>
+
+    <script src="/static/main.js"></script>
+</body>
+</html>
